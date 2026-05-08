@@ -1,40 +1,40 @@
 plugins {
-id 'fabric-loom' version '1.6.5'
-id 'maven-publish'
+    id 'fabric-loom' version '1.9.2'
+    id 'maven-publish'
 }
 
 version = "1.0.0"
 group = "com.gifoverlay"
 
 base {
-archivesName = "gif-overlay"
+    archivesName = "GIFOverlay"
 }
 
 repositories {
-mavenCentral()
-maven { url = "https://maven.terraformersmc.com/releases/" }
+    mavenCentral()
+    maven { url = "https://maven.terraformersmc.com/releases/" }
 }
 
 dependencies {
-minecraft "com.mojang:minecraft:1.21.11"
-mappings "net.fabricmc:yarn:1.21.11+build.1"
-modImplementation "net.fabricmc.fabric-api:fabric-api:0.139.4+1.21.11"
-modImplementation "net.fabricmc.fabric-api:fabric-api:0.102.0+1.21.1"
-modImplementation "com.terraformersmc:modmenu:11.0.1"
+    minecraft "com.mojang:minecraft:1.21.11"
+    mappings "net.fabricmc:yarn:1.21.11+build.1"
+    modImplementation "net.fabricmc:fabric-loader:0.16.10"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.139.4+1.21.11"
+    modImplementation "com.terraformersmc:modmenu:11.0.1"
 }
 
 processResources {
-inputs.property "version", project.version
-filesMatching("fabric.mod.json") {
-expand "version": project.version
-}
+    inputs.property "version", project.version
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-options.release.set(21)
+    options.release.set(21)
 }
 
 java {
-sourceCompatibility = JavaVersion.VERSION_21
-targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
