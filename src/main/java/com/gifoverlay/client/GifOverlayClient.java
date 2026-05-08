@@ -21,26 +21,34 @@ public class GifOverlayClient implements ClientModInitializer {
     
     @Override
     public void onInitializeClient() {
-        // Регистрация клавиши для версии 1.21.11 (рабочий вариант)
+        // Исправленный способ создания KeyBinding для 1.21.11
         openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.gifoverlay.settings",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_G,
-            "category.gifoverlay"
+            "category.gifoverlay"  // Категория
         ));
         
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (openSettingsKey.wasPressed()) {
+            // Используем wasPressed() для однократного срабатывания
+            if (openSettingsKey.wasPressed()) {
                 client.setScreen(new GifSettingsScreen(null));
             }
-            boolean editMode = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), ModConfig.getInstance().editKey);
+            
+            boolean editMode = InputUtil.isKeyPressed(
+                MinecraftClient.getInstance().getWindow().getHandle(), 
+                ModConfig.getInstance().editKey
+            );
+            
             if (editMode && client.mouse.wasLeftButtonClicked()) {
                 startDragOrResize(client);
             }
+            
             if (!editMode) {
                 isDragging = false;
                 isResizing = false;
             }
+            
             if (isDragging && editMode && client.mouse.wasLeftButtonClicked()) {
                 updateDrag(client);
             } else if (isResizing && editMode && client.mouse.wasLeftButtonClicked()) {
@@ -52,7 +60,11 @@ public class GifOverlayClient implements ClientModInitializer {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null && client.getWindow() != null) {
                 GifRenderer.getInstance().update();
-                GifRenderer.getInstance().render(context, client.getWindow().getWidth(), client.getWindow().getHeight());
+                GifRenderer.getInstance().render(
+                    context, 
+                    client.getWindow().getWidth(), 
+                    client.getWindow().getHeight()
+                );
             }
         });
         
