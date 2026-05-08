@@ -1,36 +1,33 @@
 package com.gifoverlay.client;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import com.gifoverlay.config.ModConfig;
-import com.gifoverlay.gui.GifSettingsScreen;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import com.gifoverlay.config.ModConfig;
+import com.gifoverlay.gui.GifSettingsScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 
-@Environment(EnvType.CLIENT)
 public class GifOverlayClient implements ClientModInitializer {
     private static KeyBinding openSettingsKey;
     private static boolean isDragging = false, isResizing = false;
     private static float dragStartX, dragStartY, resizeStartX, resizeStartY, startX, startY, startWidth, startHeight;
-    
+
     @Override
     public void onInitializeClient() {
-        // Правильная регистрация клавиши для 1.21.11
+        // Регистрация клавиши строго по документации 1.21.11
         openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.gifoverlay.settings",
             InputUtil.Type.KEYSYM,
             GLFW.GLFW_KEY_G,
             "category.gifoverlay"
         ));
-        
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (openSettingsKey.wasPressed()) {
+            while (openSettingsKey.wasPressed()) {
                 client.setScreen(new GifSettingsScreen(null));
             }
             boolean editMode = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), ModConfig.getInstance().editKey);
@@ -47,7 +44,7 @@ public class GifOverlayClient implements ClientModInitializer {
                 updateResize(client);
             }
         });
-        
+
         HudRenderCallback.EVENT.register((context, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.player != null && client.getWindow() != null) {
@@ -55,14 +52,14 @@ public class GifOverlayClient implements ClientModInitializer {
                 GifRenderer.getInstance().render(context, client.getWindow().getWidth(), client.getWindow().getHeight());
             }
         });
-        
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null && GifRenderer.getInstance().getTextureId() == null) {
                 GifRenderer.getInstance().loadGif(ModConfig.getInstance().gifUrl);
             }
         });
     }
-    
+
     private void startDragOrResize(MinecraftClient client) {
         ModConfig config = ModConfig.getInstance();
         double mx = client.mouse.getX() / client.getWindow().getScaleFactor();
