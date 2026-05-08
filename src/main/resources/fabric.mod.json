@@ -1,23 +1,25 @@
 {
-"schemaVersion": 1,
-"id": "gifoverlay",
-"version": "1.0.0",
-"name": "GIF Overlay",
-"description": "Показывает GIF-изображение поверх игры. Можно двигать и менять размер мышкой!",
-"authors": ["YourName"],
-"contact": {},
-"license": "MIT",
-"environment": "client",
-"entrypoints": {
-"main": ["com.gifoverlay.GifOverlayMod"],
-"client": ["com.gifoverlay.client.GifOverlayClient"],
-"modmenu": ["com.gifoverlay.config.ModMenuIntegration"]
-},
-"depends": {
-"fabricloader": ">=0.15.11",
-"minecraft": "~1.21.1",
-"java": ">=21",
-"fabric-api": "*",
-"modmenu": ">=11.0.0"
-}
+  "schemaVersion": 1,
+  "id": "gifoverlay",
+  "version": "${version}",
+  "name": "GIF Overlay",
+  "description": "Показывает GIF-изображение поверх игры. Можно двигать и менять размер мышкой!",
+  "authors": ["YourName"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "main": ["com.gifoverlay.GifOverlayMod"],
+    "client": ["com.gifoverlay.client.GifOverlayClient"],
+    "modmenu": ["com.gifoverlay.config.ModMenuIntegration"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.10",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": ">=0.147.0",
+    "modmenu": ">=11.0.0"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
 }
