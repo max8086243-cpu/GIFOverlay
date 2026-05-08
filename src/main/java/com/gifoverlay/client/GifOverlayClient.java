@@ -22,8 +22,13 @@ public class GifOverlayClient implements ClientModInitializer {
     
     @Override
     public void onInitializeClient() {
+        // Исправленный способ регистрации клавиши для 1.21.11
         openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-            "key.gifoverlay.settings", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.gifoverlay"));
+            "key.gifoverlay.settings",
+            InputUtil.Type.KEYSYM,
+            GLFW.GLFW_KEY_G,
+            "category.gifoverlay"
+        ));
         
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (openSettingsKey.wasPressed()) {
