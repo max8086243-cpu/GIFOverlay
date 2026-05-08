@@ -11,7 +11,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
@@ -22,7 +21,7 @@ public class GifOverlayClient implements ClientModInitializer {
     
     @Override
     public void onInitializeClient() {
-        // Исправленный способ регистрации клавиши для 1.21.11
+        // Исправленный конструктор для 1.21.11
         openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.gifoverlay.settings",
             InputUtil.Type.KEYSYM,
