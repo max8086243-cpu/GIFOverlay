@@ -1,88 +1,149 @@
-package com.gifoverlay.client;
+package com.gifoverlay.gui;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import com.gifoverlay.client.GifRenderer;
 import com.gifoverlay.config.ModConfig;
-import com.gifoverlay.gui.GifSettingsScreen;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.text.Text;
 
-@Environment(EnvType.CLIENT)
-public class GifOverlayClient implements ClientModInitializer {
-    private static KeyBinding openSettingsKey;
-    private static boolean isDragging = false, isResizing = false;
-    private static float dragStartX, dragStartY, resizeStartX, resizeStartY, startX, startY, startWidth, startHeight;
+public class GifSettingsScreen extends Screen {
+    private TextFieldWidget urlField;
+    private TextFieldWidget xField;
+    private TextFieldWidget yField;
+    private TextFieldWidget widthField;
+    private TextFieldWidget heightField;
+    private TextFieldWidget keyField;
+    private ButtonWidget loopButton;
+    private ModConfig config;
+    
+    public GifSettingsScreen(Screen parent) {
+        super(Text.literal("GIF Overlay Settings"));
+        this.config = ModConfig.getInstance();
+    }
     
     @Override
-    public void onInitializeClient() {
-        openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-            "key.gifoverlay.settings", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "category.gifoverlay"));
+    protected void init() {
+        int centerX = this.width / 2;
+        int y = 40;
         
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (openSettingsKey.wasPressed()) client.setScreen(new GifSettingsScreen(null));
-            boolean editMode = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), ModConfig.getInstance().editKey);
-            if (editMode && client.mouse.wasLeftButtonClicked()) startDragOrResize(client);
-            if (!editMode) { isDragging = false; isResizing = false; }
-            if (isDragging && editMode && client.mouse.wasLeftButtonClicked()) updateDrag(client);
-            else if (isResizing && editMode && client.mouse.wasLeftButtonClicked()) updateResize(client);
-        });
+        // URL
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("GIF URL:"), button -> {})
+            .dimensions(centerX - 150, y, 100, 20).build());
         
-        HudRenderCallback.EVENT.register((context, tickDelta) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client.player != null && client.getWindow() != null) {
-                GifRenderer.getInstance().update();
-                GifRenderer.getInstance().render(context, client.getWindow().getWidth(), client.getWindow().getHeight());
+        urlField = new TextFieldWidget(this.textRenderer, centerX - 40, y, 190, 20, Text.literal("URL"));
+        urlField.setText(config.gifUrl);
+        this.addSelectableChild(urlField);
+        y += 30;
+        
+        // X позиция
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("X (%):"), button -> {})
+            .dimensions(centerX - 150, y, 100, 20).build());
+        
+        xField = new TextFieldWidget(this.textRenderer, centerX - 40, y, 80, 20, Text.literal("X"));
+        xField.setText(String.valueOf(config.xPos));
+        this.addSelectableChild(xField);
+        
+        // Y позиция
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Y (%):"), button -> {})
+            .dimensions(centerX + 60, y, 100, 20).build());
+        
+        yField = new TextFieldWidget(this.textRenderer, centerX + 170, y, 80, 20, Text.literal("Y"));
+        yField.setText(String.valueOf(config.yPos));
+        this.addSelectableChild(yField);
+        y += 30;
+        
+        // Ширина
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Width:"), button -> {})
+            .dimensions(centerX - 150, y, 100, 20).build());
+        
+        widthField = new TextFieldWidget(this.textRenderer, centerX - 40, y, 80, 20, Text.literal("px"));
+        widthField.setText(String.valueOf(config.width));
+        this.addSelectableChild(widthField);
+        
+        // Высота
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Height:"), button -> {})
+            .dimensions(centerX + 60, y, 100, 20).build());
+        
+        heightField = new TextFieldWidget(this.textRenderer, centerX + 170, y, 80, 20, Text.literal("px"));
+        heightField.setText(String.valueOf(config.height));
+        this.addSelectableChild(heightField);
+        y += 30;
+        
+        // Клавиша редактирования
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Edit Key (LWJGL):"), button -> {})
+            .dimensions(centerX - 150, y, 120, 20).build());
+        
+        keyField = new TextFieldWidget(this.textRenderer, centerX - 20, y, 60, 20, Text.literal("key"));
+        keyField.setText(String.valueOf(config.editKey));
+        this.addSelectableChild(keyField);
+        
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("? (R=19)"), button -> {})
+            .dimensions(centerX + 50, y, 80, 20).build());
+        y += 30;
+        
+        // Кнопка зацикливания
+        loopButton = ButtonWidget.builder(
+            Text.literal("Loop: " + (config.loop ? "ON" : "OFF")),
+            button -> {
+                config.loop = !config.loop;
+                loopButton.setMessage(Text.literal("Loop: " + (config.loop ? "ON" : "OFF")));
             }
-        });
+        ).dimensions(centerX - 150, y, 100, 20).build();
+        this.addDrawableChild(loopButton);
+        y += 40;
         
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player != null && GifRenderer.getInstance().getTextureId() == null)
-                GifRenderer.getInstance().loadGif(ModConfig.getInstance().gifUrl);
-        });
+        // Кнопка сохранить
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Save & Reload"), button -> {
+            saveSettings();
+            GifRenderer.getInstance().loadGif(config.gifUrl);
+            this.close();
+        }).dimensions(centerX - 100, y, 80, 20).build());
+        
+        // Кнопка отмена
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Cancel"), button -> {
+            this.close();
+        }).dimensions(centerX + 20, y, 80, 20).build());
     }
     
-    private void startDragOrResize(MinecraftClient client) {
-        ModConfig config = ModConfig.getInstance();
-        double mx = client.mouse.getX() / client.getWindow().getScaleFactor();
-        double my = client.mouse.getY() / client.getWindow().getScaleFactor();
-        float sx = client.getWindow().getWidth(), sy = client.getWindow().getHeight();
-        float gx = (config.xPos / 100f) * sx, gy = (config.yPos / 100f) * sy;
+    private void saveSettings() {
+        try {
+            config.gifUrl = urlField.getText();
+            config.xPos = Float.parseFloat(xField.getText());
+            config.yPos = Float.parseFloat(yField.getText());
+            config.width = Float.parseFloat(widthField.getText());
+            config.height = Float.parseFloat(heightField.getText());
+            config.editKey = Integer.parseInt(keyField.getText());
+            config.save();
+        } catch (NumberFormatException ignored) {}
+    }
+    
+    @Override
+    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        this.renderBackground(context, mouseX, mouseY, delta);
+        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 20, 0xFFFFFF);
         
-        if (mx >= gx && mx <= gx + config.width && my >= gy && my <= gy + config.height) {
-            if (client.mouse.wasRightButtonClicked()) {
-                isResizing = true;
-                resizeStartX = (float)mx; resizeStartY = (float)my;
-                startWidth = config.width; startHeight = config.height;
-            } else {
-                isDragging = true;
-                dragStartX = (float)mx; dragStartY = (float)my;
-                startX = gx; startY = gy;
-            }
+        urlField.render(context, mouseX, mouseY, delta);
+        xField.render(context, mouseX, mouseY, delta);
+        yField.render(context, mouseX, mouseY, delta);
+        widthField.render(context, mouseX, mouseY, delta);
+        heightField.render(context, mouseX, mouseY, delta);
+        keyField.render(context, mouseX, mouseY, delta);
+        
+        super.render(context, mouseX, mouseY, delta);
+    }
+    
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (urlField.keyPressed(keyCode, scanCode, modifiers) ||
+            xField.keyPressed(keyCode, scanCode, modifiers) ||
+            yField.keyPressed(keyCode, scanCode, modifiers) ||
+            widthField.keyPressed(keyCode, scanCode, modifiers) ||
+            heightField.keyPressed(keyCode, scanCode, modifiers) ||
+            keyField.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
         }
-    }
-    
-    private void updateDrag(MinecraftClient client) {
-        double mx = client.mouse.getX() / client.getWindow().getScaleFactor();
-        double my = client.mouse.getY() / client.getWindow().getScaleFactor();
-        ModConfig config = ModConfig.getInstance();
-        float nx = startX + (float)mx - dragStartX;
-        float ny = startY + (float)my - dragStartY;
-        config.xPos = (nx / client.getWindow().getWidth()) * 100f;
-        config.yPos = (ny / client.getWindow().getHeight()) * 100f;
-        config.save();
-    }
-    
-    private void updateResize(MinecraftClient client) {
-        double mx = client.mouse.getX() / client.getWindow().getScaleFactor();
-        double my = client.mouse.getY() / client.getWindow().getScaleFactor();
-        ModConfig config = ModConfig.getInstance();
-        config.width = Math.max(50, startWidth + (float)mx - resizeStartX);
-        config.height = Math.max(50, startHeight + (float)my - resizeStartY);
-        config.save();
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 }
