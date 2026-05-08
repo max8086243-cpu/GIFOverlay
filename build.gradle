@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.7.4'
+    id 'fabric-loom' version '1.6.5'
     id 'maven-publish'
 }
 
@@ -16,24 +16,11 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:1.21.11"
-    mappings "net.fabricmc:yarn:1.21.11+build.1"
-    modImplementation "net.fabricmc:fabric-loader:0.16.10"
-    
-    // Исключаем проблемный модуль
-    modImplementation("net.fabricmc.fabric-api:fabric-api:0.139.4+1.21.11") {
-        exclude module: "fabric-content-registries-v0"
-    }
-    
+    minecraft "com.mojang:minecraft:1.21.1"
+    mappings "net.fabricmc:yarn:1.21.1+build.1"
+    modImplementation "net.fabricmc:fabric-loader:0.15.11"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.102.0+1.21.1"
     modImplementation "com.terraformersmc:modmenu:11.0.1"
-}
-
-loom {
-    runs {
-        client {
-            vmArgs "-Dfabric.debug.disableJavadocProvider=true"
-        }
-    }
 }
 
 processResources {
@@ -50,4 +37,8 @@ tasks.withType(JavaCompile).configureEach {
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+gradleWrapper {
+    gradleVersion = '8.8'
 }
