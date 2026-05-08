@@ -19,6 +19,15 @@ loom {
     runConfigs.configureEach {
         ideConfigGenerated = true
     }
+    // Отключаем проверку javadoc (решает ошибку)
+    runs {
+        client {
+            vmArgs "-Dfabric.debug.disableJavadocProvider=true"
+        }
+        server {
+            vmArgs "-Dfabric.debug.disableJavadocProvider=true"
+        }
+    }
 }
 
 dependencies {
