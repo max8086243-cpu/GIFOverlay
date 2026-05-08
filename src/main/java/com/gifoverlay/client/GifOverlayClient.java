@@ -21,7 +21,7 @@ public class GifOverlayClient implements ClientModInitializer {
     
     @Override
     public void onInitializeClient() {
-        // Исправленный способ регистрации клавиши для 1.21.11
+        // Регистрация клавиши для версии 1.21.11 (рабочий вариант)
         openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
             "key.gifoverlay.settings",
             InputUtil.Type.KEYSYM,
@@ -30,7 +30,7 @@ public class GifOverlayClient implements ClientModInitializer {
         ));
         
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (openSettingsKey.wasPressed()) {
+            while (openSettingsKey.wasPressed()) {
                 client.setScreen(new GifSettingsScreen(null));
             }
             boolean editMode = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), ModConfig.getInstance().editKey);
